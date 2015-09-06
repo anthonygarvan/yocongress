@@ -1,0 +1,29 @@
+{
+  "name": "yocongress",
+  "version": "1.0.0",
+  "description": "Twitter bot that retweets to appropriate congresspeople.",
+  "main": "app.js",
+  "dependencies": {
+    "twitter": "^1.2.5",
+    "request": "^2.61.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthonygarvan/yocongress.git"
+  },
+  "keywords": [
+    "twitter",
+    "congress",
+    "advocacy"
+  ],
+  "author": "Anthony Garvan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anthonygarvan/yocongress/issues"
+  },
+  "homepage": "https://github.com/anthonygarvan/yocongress"
+}
