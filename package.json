@@ -5,7 +5,9 @@
   "main": "app.js",
   "dependencies": {
     "twitter": "^1.2.5",
-    "request": "^2.61.0"
+    "request": "^2.61.0",
+    "yamljs": "^0.2.3",
+    "async": "^1.4.2"
   },
   "devDependencies": {},
   "scripts": {
