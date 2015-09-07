@@ -56,7 +56,14 @@ function getRepDictionaries(callback) {
 
 function getNewMentions(callback) {
     client.get('statuses/mentions_timeline', function(err, tweets, response) {
-      callback(null, tweets);
+      filteredTweets = [];
+      tweets.forEach(function(tweet) {
+        if(!tweet.in_reply_to_status_id && !tweet.retweet_status) {
+          filteredTweets.push(tweet);
+        }
+      })
+      console.log(filteredTweets.length);
+      callback(null, filteredTweets);
     });
 }
 
@@ -69,16 +76,20 @@ function getRepTwitterHandles(tweet, callback) {
     url = url.replace('LON', lon.toString());
     request.get(url, function(err, result, body) {
       boundary = JSON.parse(body);
-      district = boundary.objects[0].name;
-      state = district.split('-')[0];
+      if(boundary.objects.length > 0) {
+        district = boundary.objects[0].name;
+        state = district.split('-')[0];
 
-      allReps = senators[state]
-      allReps.push(reps[district]);
-      twitterHandles = []
-      allReps.forEach(function(rep) {
-        twitterHandles.push(bioGuideIdToHandle[rep]);
-      });
-      callback(null, tweet, twitterHandles);
+        allReps = senators[state]
+        allReps.push(reps[district]);
+        twitterHandles = []
+        allReps.forEach(function(rep) {
+          twitterHandles.push(bioGuideIdToHandle[rep]);
+        });
+        callback(null, tweet, twitterHandles);
+      } else {
+        callback(null, tweet, []);
+      }
     })
   } else {
     callback(null, tweet, []);
@@ -88,10 +99,10 @@ function getRepTwitterHandles(tweet, callback) {
 
 function composeTweet(tweet, twitterHandles, callback) {
       var retweet = {status: '@' + tweet.user.screen_name + ' '};
+      retweet.in_reply_to_status_id = tweet.id_str;
+
       if(twitterHandles.length > 0) {
-          console.log(tweet);
           retweet.status += '+ ';
-          retweet.in_reply_to_status_id = tweet.id;
           twitterHandles.forEach(function(handle) {
             retweet.status += '@' + handle +'_test ';
           })
@@ -101,7 +112,8 @@ function composeTweet(tweet, twitterHandles, callback) {
         if(!tweet.place) {
           retweet.status += 'Sorry, you have to enable location for this to work. To learn how visit https://support.twitter.com/articles/122236';
         } else {
-          retweet.status += 'Sorry, I couldn\'t find your representatives. You must be located in the US for this to work. If you think it\'s a bug, please tweet to me again with hashtag #bug';
+          retweet.status += 'You must be located in the US for this to work. If you are in the US, please tweet to me again with hashtag #bug';
+          console.log('outside us');
         }
       }
 
@@ -110,8 +122,16 @@ function composeTweet(tweet, twitterHandles, callback) {
 
 function sendTweet(tweet, callback) {
   client.post('statuses/update', tweet, function(err, tweet, response) {
+    if(err) {console.log(err);}
     callback(null, tweet.text);
   })
+}
+
+function deleteTweet(tweet, callback) {
+  client.post('statuses/destroy/' + tweet.id_str + '.json', {}, function(err, tweets) {
+    console.log(err);
+    callback();
+  });
 }
 
 // Flow control
@@ -119,7 +139,6 @@ function sendTweet(tweet, callback) {
 function retweetToReps(tweet, callback) {
   async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet, sendTweet],
     function(err, result) {
-        console.log(result);
         callback(err);
     })
 }
@@ -130,8 +149,20 @@ function distributeTweets(tweets, callback) {
   });
 }
 
+function deleteTweets(tweets, callback) {
+  async.eachSeries(tweets, deleteTweet, function(err) {
+      callback(null, 'done');
+  });
+}
+
 function retweetAll() {
   async.waterfall([getNewMentions, distributeTweets], function(err, result) {
+    console.log(result);
+  })
+}
+
+function deleteAll() {
+  async.waterfall([getNewMentions, deleteTweets], function(err, result) {
     console.log(result);
   })
 }
@@ -139,3 +170,4 @@ function retweetAll() {
 getLegislatorRoles();
 getRepDictionaries();
 setTimeout(retweetAll, 5000);
+//deleteAll();
