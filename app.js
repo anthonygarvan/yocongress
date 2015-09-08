@@ -62,7 +62,6 @@ function getNewMentions(callback) {
             && tweet.user.screen_name !== 'YoCongress'
             && !(tweet.id_str in processedTweets)) {
               filteredTweets.push(tweet);
-              processedTweets[tweet.id_str] = new Date();
           }
         })
 
@@ -138,6 +137,9 @@ function composeTweet(tweet, twitterHandles, callback) {
 function sendTweet(tweet, callback) {
   client.post('statuses/update', tweet, function(err, tweet, response) {
     if(err) {console.log(err);}
+    else {
+      processedTweets[tweet.in_reply_to_status_id] = new Date();
+    }
     callback(null, tweet.text);
   })
 }
