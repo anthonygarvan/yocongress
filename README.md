@@ -27,3 +27,8 @@ Due to API limitations it can take up to a minute to retweet to your reps.
 - Error: Tweet received without a lat / lon get replied to with link to enable geolocation
 - Error: Tweet outside of US get replied with "You don't seem to be in the US"
 - Error: For tweet from state with rep with no handle, that rep is ignored
+
+## Other Info
+
+- Members of congress can opt out of this service by tweeting to @YoCongress
+with hashtag @optout.

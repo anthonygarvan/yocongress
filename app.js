@@ -198,4 +198,4 @@ getRepDictionaries();
 startFresh();
 
 // run bot in endless loop
-setInterval(retweetAll, 65000);
+setInterval(retweetAll, 305000);
