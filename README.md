@@ -1,9 +1,13 @@
 # Yo Congress!
 
 Yo Congress is a twitter bot that retweets tweets sent to @YoCongress to the twitter
-accounts of the congresspeople corresponding to the location of the tweet.
+accounts of the congresspeople (members of the US senate and house of representatives)
+corresponding to the location of the tweet.
 
-This is a work in progress.
+Location needs to be enabled for it to work, to enable location on your device
+see [here](https://support.twitter.com/articles/122236).
+
+Due to API limitations it can take up to a minute to retweet to your reps.
 
 ## Operation
 
@@ -14,13 +18,12 @@ This is a work in progress.
   - getNewMentions
   - getRepTwitterHandles
   - composeTweet
-  - [async] sendTweet
+  - sendTweet
 
 ## Specs
 
-- Success: Tweet from capital of every state with location enabled tweets to senators and reps
-- Success: Works with both "places" api and specific location
+- Success: Tweet from location within US tweets to senators and reps
+- Success: Works with both "places" api and specific location [not implemented]
 - Error: Tweet received without a lat / lon get replied to with link to enable geolocation
 - Error: Tweet outside of US get replied with "You don't seem to be in the US"
 - Error: For tweet from state with rep with no handle, that rep is ignored
-- Error: More than 10 tweets / 24 hrs per user gets blocked with message

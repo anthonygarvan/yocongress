@@ -50,26 +50,31 @@ function getRepDictionaries(callback) {
 function getNewMentions(callback) {
     client.get('statuses/mentions_timeline', {count: 100},
     function(err, tweets, response) {
-      filteredTweets = [];
-      var recentTweetIds = {};
-      tweets.forEach(function(tweet) {
-        recentTweetIds[tweet.id_str] = new Date();
-        if(!tweet.in_reply_to_status_id && !tweet.retweet_status
-          && tweet.user.screen_name !== 'YoCongress'
-          && !(tweet.id_str in processedTweets)) {
-            filteredTweets.push(tweet);
-            processedTweets[tweet.id_str] = new Date();
-        }
-      })
+      if(err) {
+        console.log(err);
+        callback(null, []);
+      } else {
+        filteredTweets = [];
+        var recentTweetIds = {};
+        tweets.forEach(function(tweet) {
+          recentTweetIds[tweet.id_str] = new Date();
+          if(!tweet.in_reply_to_status_id && !tweet.retweet_status
+            && tweet.user.screen_name !== 'YoCongress'
+            && !(tweet.id_str in processedTweets)) {
+              filteredTweets.push(tweet);
+              processedTweets[tweet.id_str] = new Date();
+          }
+        })
 
-      Object.keys(processedTweets).forEach(function(processedId) {
-        if(!(processedId in recentTweetIds)) {
-          delete processedTweets[processedId];
-        }
-      })
+        Object.keys(processedTweets).forEach(function(processedId) {
+          if(!(processedId in recentTweetIds)) {
+            delete processedTweets[processedId];
+          }
+        })
 
-      console.log(filteredTweets.length);
-      callback(null, filteredTweets);
+        console.log(filteredTweets.length + ' new mentions found');
+        callback(null, filteredTweets);
+      }
     });
 }
 
@@ -86,11 +91,17 @@ function getRepTwitterHandles(tweet, callback) {
         district = boundary.objects[0].name;
         state = district.split('-')[0];
 
-        allReps = senators[state]
+        var allReps = []
+        senators[state].forEach(function(senator) {
+          allReps.push(senator);
+        })
         allReps.push(reps[district]);
-        twitterHandles = []
+
+        var twitterHandles = []
         allReps.forEach(function(rep) {
-          twitterHandles.push(bioGuideIdToHandle[rep]);
+          if(bioGuideIdToHandle[rep]) {
+            twitterHandles.push(bioGuideIdToHandle[rep]);
+          }
         });
         callback(null, tweet, twitterHandles);
       } else {
@@ -105,16 +116,15 @@ function getRepTwitterHandles(tweet, callback) {
 
 function composeTweet(tweet, twitterHandles, callback) {
       var retweet = {status: '@' + tweet.user.screen_name + ' '};
-
+      retweet.in_reply_to_status_id = tweet.id_str;
       if(twitterHandles.length > 0) {
           retweet.status += '+ ';
           twitterHandles.forEach(function(handle) {
-            retweet.status += '@' + handle +'_test ';
+            retweet.status += '@' + handle + ' ';
           })
           retweet.status += 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str;
           retweet.place_id = tweet.place.id;
       } else {
-        retweet.in_reply_to_status_id = tweet.id_str;
         if(!tweet.place) {
           retweet.status += 'Sorry, you have to enable location for this to work. To learn how visit https://support.twitter.com/articles/122236';
         } else {
@@ -173,8 +183,17 @@ function deleteAll() {
   })
 }
 
+function startFresh() {
+  async.waterfall([getNewMentions, function(tweets) {
+    tweets.forEach(function(tweet) {
+      processedTweets[tweet.id_str] = new Date();
+    })
+  }])
+}
+
 getLegislatorRoles();
 getRepDictionaries();
+startFresh();
 
 // run bot in endless loop
 setInterval(retweetAll, 65000);
