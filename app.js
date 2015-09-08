@@ -125,7 +125,7 @@ function composeTweet(tweet, twitterHandles, callback) {
           retweet.place_id = tweet.place.id;
       } else {
         if(!tweet.place) {
-          retweet.status += 'Sorry, you have to enable location for this to work. To learn how visit https://support.twitter.com/articles/122236';
+          retweet.status += 'Please try again with location enabled. To learn how visit https://support.twitter.com/articles/122236';
         } else {
           retweet.status += 'You must be located in the US for this to work. If you are in the US, please tweet to me again with hashtag #bug';
         }
