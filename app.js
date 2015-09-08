@@ -58,7 +58,7 @@ function getNewMentions(callback) {
         var recentTweetIds = {};
         tweets.forEach(function(tweet) {
           recentTweetIds[tweet.id_str] = new Date();
-          if(!tweet.in_reply_to_status_id && !tweet.retweet_status
+          if(!tweet.retweet_status
             && tweet.user.screen_name !== 'YoCongress'
             && !(tweet.id_str in processedTweets)) {
               filteredTweets.push(tweet);
