@@ -5,14 +5,7 @@ var YAML = require('yamljs');
 var async = require('async');
 
 var config = JSON.parse(fs.readFileSync('config.json', "utf8"));
-
-/*
-var dbPath = __dirname + '/tweetdb';
-mkdirp(dbPath, function(err) {
-  db = new Engine.Db(dbPath, {});
-  collection = db.collection("tweets");
-})
-*/
+var processedTweets = {};
 
 var client = new Twitter({
   consumer_key: config.consumer_key,
@@ -55,13 +48,26 @@ function getRepDictionaries(callback) {
 }
 
 function getNewMentions(callback) {
-    client.get('statuses/mentions_timeline', function(err, tweets, response) {
+    client.get('statuses/mentions_timeline', {count: 100},
+    function(err, tweets, response) {
       filteredTweets = [];
+      var recentTweetIds = {};
       tweets.forEach(function(tweet) {
-        if(!tweet.in_reply_to_status_id && !tweet.retweet_status) {
-          filteredTweets.push(tweet);
+        recentTweetIds[tweet.id_str] = new Date();
+        if(!tweet.in_reply_to_status_id && !tweet.retweet_status
+          && tweet.user.screen_name !== 'YoCongress'
+          && !(tweet.id_str in processedTweets)) {
+            filteredTweets.push(tweet);
+            processedTweets[tweet.id_str] = new Date();
         }
       })
+
+      Object.keys(processedTweets).forEach(function(processedId) {
+        if(!(processedId in recentTweetIds)) {
+          delete processedTweets[processedId];
+        }
+      })
+
       console.log(filteredTweets.length);
       callback(null, filteredTweets);
     });
@@ -99,7 +105,6 @@ function getRepTwitterHandles(tweet, callback) {
 
 function composeTweet(tweet, twitterHandles, callback) {
       var retweet = {status: '@' + tweet.user.screen_name + ' '};
-      retweet.in_reply_to_status_id = tweet.id_str;
 
       if(twitterHandles.length > 0) {
           retweet.status += '+ ';
@@ -109,11 +114,11 @@ function composeTweet(tweet, twitterHandles, callback) {
           retweet.status += 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str;
           retweet.place_id = tweet.place.id;
       } else {
+        retweet.in_reply_to_status_id = tweet.id_str;
         if(!tweet.place) {
           retweet.status += 'Sorry, you have to enable location for this to work. To learn how visit https://support.twitter.com/articles/122236';
         } else {
           retweet.status += 'You must be located in the US for this to work. If you are in the US, please tweet to me again with hashtag #bug';
-          console.log('outside us');
         }
       }
 
@@ -157,7 +162,8 @@ function deleteTweets(tweets, callback) {
 
 function retweetAll() {
   async.waterfall([getNewMentions, distributeTweets], function(err, result) {
-    console.log(result);
+    if(err) {console.log(err);}
+    console.log('loop finished at ' + new Date());
   })
 }
 
@@ -169,5 +175,6 @@ function deleteAll() {
 
 getLegislatorRoles();
 getRepDictionaries();
-setTimeout(retweetAll, 5000);
-//deleteAll();
+
+// run bot in endless loop
+setInterval(retweetAll, 65000);
