@@ -151,8 +151,7 @@ function deleteTweet(tweet, callback) {
 // Flow control
 
 function retweetToReps(tweet, callback) {
-  //async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet, sendTweet],
-  async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet],
+  async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet, sendTweet],
     function(err, result) {
         callback(err);
     })
@@ -196,4 +195,4 @@ getRepDictionaries();
 startFresh();
 
 // run bot in endless loop
-setInterval(retweetAll, 15000);
+setInterval(retweetAll, 65000);
