@@ -130,16 +130,13 @@ function composeTweet(tweet, twitterHandles, callback) {
           retweet.status += 'You must be located in the US for this to work. If you are in the US, please tweet to me again with hashtag #bug';
         }
       }
-
+      processedTweets[tweet.id_str] = new Date();
       callback(null, retweet);
 }
 
 function sendTweet(tweet, callback) {
   client.post('statuses/update', tweet, function(err, tweet, response) {
     if(err) {console.log(err);}
-    else {
-      processedTweets[tweet.in_reply_to_status_id] = new Date();
-    }
     callback(null, tweet.text);
   })
 }
@@ -154,7 +151,8 @@ function deleteTweet(tweet, callback) {
 // Flow control
 
 function retweetToReps(tweet, callback) {
-  async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet, sendTweet],
+  //async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet, sendTweet],
+  async.waterfall([function(callback) {callback(null, tweet)}, getRepTwitterHandles, composeTweet],
     function(err, result) {
         callback(err);
     })
@@ -198,4 +196,4 @@ getRepDictionaries();
 startFresh();
 
 // run bot in endless loop
-setInterval(retweetAll, 305000);
+setInterval(retweetAll, 15000);
