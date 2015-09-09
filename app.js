@@ -124,21 +124,19 @@ function composeTweet(tweet, twitterHandles, callback) {
           retweet.status += 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str;
           retweet.place_id = tweet.place.id;
       } else {
-        if(!tweet.place) {
-          retweet.status += 'Please try again with location enabled. To learn how visit https://support.twitter.com/articles/122236';
-        } else {
-          retweet.status += 'You must be located in the US for this to work. If you are in the US, please tweet to me again with hashtag #bug';
-        }
+        retweet.status = "";
       }
       processedTweets[tweet.id_str] = new Date();
       callback(null, retweet);
 }
 
 function sendTweet(tweet, callback) {
-  client.post('statuses/update', tweet, function(err, tweet, response) {
-    if(err) {console.log(err);}
-    callback(null, tweet.text);
-  })
+  if(tweet.status !== "") {
+    client.post('statuses/update', tweet, function(err, tweet, response) {
+      if(err) {console.log(err);}
+      callback(null, tweet.text);
+    });
+  }
 }
 
 function deleteTweet(tweet, callback) {
