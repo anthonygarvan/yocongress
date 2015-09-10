@@ -90,11 +90,7 @@ function getRepTwitterHandles(tweet, callback) {
         district = boundary.objects[0].name;
         state = district.split('-')[0];
 
-        var allReps = []
-        senators[state].forEach(function(senator) {
-          allReps.push(senator);
-        })
-        allReps.push(reps[district]);
+        var allReps = [reps[district]]
 
         var twitterHandles = []
         allReps.forEach(function(rep) {
@@ -110,23 +106,19 @@ function getRepTwitterHandles(tweet, callback) {
   } else {
     callback(null, tweet, []);
   }
-
 }
 
 function composeTweet(tweet, twitterHandles, callback) {
-      var retweet = {status: '@' + tweet.user.screen_name + ' '};
-      retweet.in_reply_to_status_id = tweet.id_str;
+      var retweet = {status: ''};
       if(twitterHandles.length > 0) {
-          retweet.status += '+ ';
-          twitterHandles.forEach(function(handle) {
-            retweet.status += '@' + handle + ' ';
-          })
-          retweet.status += 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str;
+          retweet.status = tweet.text
+                                .replace(/\@YoCongress/ig, '@' + twitterHandles[0])
+                                .substring(0, 140);
           retweet.place_id = tweet.place.id;
       } else {
-        retweet.status = "";
       }
       processedTweets[tweet.id_str] = new Date();
+      console.log(retweet);
       callback(null, retweet);
 }
 
@@ -180,12 +172,25 @@ function deleteAll() {
   })
 }
 
-function startFresh() {
+function startAlmostFresh() {
   async.waterfall([getNewMentions, function(tweets) {
-    tweets.forEach(function(tweet) {
-      processedTweets[tweet.id_str] = new Date();
+    var tweetReserved = false;
+    tweets.forEach(function(tweet, i, arr) {
+      if(!tweet.place && !tweetReserved) {
+        processedTweets[tweet.id_str] = new Date();
+      } else {
+        tweetReserved = true;
+      }
     })
   }])
+}
+
+function startFresh() {
+  async.waterfall([getNewMentions, function(tweets) {
+      tweets.forEach(function(tweet) {
+        processedTweets[tweet.id_str] = new Date();
+      });
+  }]);
 }
 
 getLegislatorRoles();
