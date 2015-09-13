@@ -63,7 +63,9 @@ function getNewMentions(callback) {
           }
         });
 
-        console.log(filteredTweets.length + ' new mentions found');
+        if(filteredTweets.length > 0) {
+          console.log(filteredTweets.length + ' new mentions found');
+        }
         callback(null, filteredTweets);
       }
     });
