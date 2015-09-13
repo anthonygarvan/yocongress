@@ -55,21 +55,13 @@ function getNewMentions(callback) {
         callback(null, []);
       } else {
         filteredTweets = [];
-        var recentTweetIds = {};
         tweets.forEach(function(tweet) {
-          recentTweetIds[tweet.id_str] = new Date();
           if(!tweet.retweet_status
             && tweet.user.screen_name !== 'YoCongress'
             && !(tweet.id_str in processedTweets)) {
               filteredTweets.push(tweet);
           }
-        })
-
-        Object.keys(processedTweets).forEach(function(processedId) {
-          if(!(processedId in recentTweetIds)) {
-            delete processedTweets[processedId];
-          }
-        })
+        });
 
         console.log(filteredTweets.length + ' new mentions found');
         callback(null, filteredTweets);
@@ -115,17 +107,18 @@ function composeTweet(tweet, twitterHandles, callback) {
                                 .replace(/\@YoCongress/ig, '@' + twitterHandles[0])
                                 .substring(0, 140);
           retweet.place_id = tweet.place.id;
-      } else {
       }
       processedTweets[tweet.id_str] = new Date();
-      console.log(retweet);
       callback(null, retweet);
 }
 
 function sendTweet(tweet, callback) {
   if(tweet.status !== "") {
     client.post('statuses/update', tweet, function(err, tweet, response) {
-      if(err) {console.log(err);}
+      if(err) {
+        console.log(err);
+        console.log(tweet);
+      }
       callback(null, tweet.text);
     });
   }
