@@ -117,8 +117,9 @@ function sendTweet(tweet, callback) {
     client.post('statuses/update', tweet, function(err, tweet, response) {
       if(err) {
         console.log(err);
-        console.log(tweet);
-      }
+      } else {console.log('Tweet Sent:');}
+      console.log(tweet.text);
+
       callback(null, tweet.text);
     });
   }
@@ -155,7 +156,6 @@ function deleteTweets(tweets, callback) {
 function retweetAll() {
   async.waterfall([getNewMentions, distributeTweets], function(err, result) {
     if(err) {console.log(err);}
-    console.log('loop finished at ' + new Date());
   })
 }
 
